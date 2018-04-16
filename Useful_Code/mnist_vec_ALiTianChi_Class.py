@@ -4,8 +4,11 @@
 import tensorflow as tf
 
 # 提取batch的函数
-def read_and_decode(file_queue)
-  reader = tf.TFRecordReader()
+def read_and_decode(file_queue)  # 返回单个image和对应的label
+  reader = tf.TFRecordReader()   # TFRecord是TF官方提供的一种数据格式，内部结构是PB(protocol buffer)
+                                 # 可以吧许多零散的文件整合成为一个大的文件，可以提高效率，老师推荐把这个应用在实际的工程中
+                                 # TFRecord读出来是一个string,可以通过tf.parse_single_example这样一个方法去解析string
+                                 # 可参考：https://blog.csdn.net/happyhorizion/article/details/77894055 
   _, serialized_example = readed.read(file_queue)   # Python中'_'也可以作为一个变量，通常作为临时变量
   features = tf.parse_single_example(
     serialized_example,
@@ -15,15 +18,17 @@ def read_and_decode(file_queue)
     })
   image = tf.decode_raw(features['image_raw'], tf.uint8)
   image.set_shape([784])
-  image = tf.cast(image, tf.float32) * (1. / 255)
+  image = tf.cast(image, tf.float32) * (1. / 255)  # 归一化有助于加快收敛
   label = tf.cast(features['label'], tf.int32)
   return image. label
 
 def read_image_batch(file_queue, batch_size)  # 从file_queue里读取batch_size个数据
   img, label = read_and_decode(file_queue)
-  capacity = 3 * batch_size
+  capacity = 3 * batch_size                   # 根据官方文档的推荐， 是考虑到后台的线程模型的一种比较好的大小
   image_batch, label_batch = tf.train.batch([img, label], batch_size = label_batch, capacity = capacity)
-  one_hot_labels = tf.to_float(tf.one_hot(label_batch, 10, 1, 0))
+  one_hot_labels = tf.to_float(tf.one_hot(label_batch, 10, 1, 0))  # label的输入要把它转换成one-hot形式，相当于标签的向量化，0~9的分类用十个
+                                                                   # 布尔型组成的向量构成
+                                                                   # 原因在于：https://blog.csdn.net/m0_37561765/article/details/78207508
   return image_batch, one_hot_labels
 
 w = tf.Variable(tf.zeros([784, 10]))
