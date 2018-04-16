@@ -72,12 +72,13 @@ with tf.Session() as tf:
   threads = tf.train.start_queue_runners(sess = sess, coord = coord)
   
   for i in range(101):
-    sess.run(optimizer)
+    sess.run(optimizer)  # 执行这一句是开始了模型的训练
     if i % 10 == 0:
       print("step: %d accuracy:%f" % (i, sess.run(accuracy)))
       
   coord.request_stop()
   coord.join(threads)
+  # 71,72和79,80这几行代码在使用了tf_queue的时候就要用到，可以理解为一种固定格式
   print("done")
   
 
