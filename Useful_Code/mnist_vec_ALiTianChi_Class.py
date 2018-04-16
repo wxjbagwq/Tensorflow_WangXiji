@@ -9,6 +9,7 @@ def read_and_decode(file_queue)  # 返回单个image和对应的label
                                  # 可以吧许多零散的文件整合成为一个大的文件，可以提高效率，老师推荐把这个应用在实际的工程中
                                  # TFRecord读出来是一个string,可以通过tf.parse_single_example这样一个方法去解析string
                                  # 可参考：https://blog.csdn.net/happyhorizion/article/details/77894055 
+                                 # TF还提供了：TextlenReader(读取文件的一行)；HoldfileReader(读整个文件)
   _, serialized_example = readed.read(file_queue)   # Python中'_'也可以作为一个变量，通常作为临时变量
   features = tf.parse_single_example(
     serialized_example,
@@ -34,7 +35,8 @@ def read_image_batch(file_queue, batch_size)  # 从file_queue里读取batch_size
 w = tf.Variable(tf.zeros([784, 10]))
 b = tf.Variable(tf.zeros([10]))
 
-train_file_path = "oss://....."         
+# 这里OSS的过程：调用(request) -> ... -> TFRuntime -> XXXReaderOp(如这里的TFRecordReader) -> Env -> FileSystem(file://, oss://, hdfs://) 
+train_file_path = "oss://....."   
 train_image_filename_queue = tf.train.string_input_producer([train_file_path])  # 取出路径中的文件
 train_images, train_labels = read_image_batch(train_image_filename_queue, 128)
 
@@ -43,7 +45,7 @@ y  = tf.nn.softmax(tf.matmul(x, w) + b)
 y_ = tf.to_float(train_labels) 
 
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
-train_step    = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+optimizer     = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
 # Prediction_Code
 test_file_path = "oss://...."
@@ -59,6 +61,25 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 # 1. 其本身没有参数去指定分类个数，都是由后面的 "tf.matmul(x_test, w) + b" => "[1, 784] * [784, 10] + [1, 10] == [1, 10]"
 # 即做的10分类，所以在编写代码的时候是提前计算出来分类个数，而不是去直接指定。
 # 2. 因为这是一个简单的例子，并没有做出更加复杂的诸如CNN或者线性回归的例子，所以也没有增加如激活函数等等的。
+
+# Executive
+init = tf.global_variables_initializer()
+
+with tf.Session() as tf:
+  sess.run(init)
+  
+  coord   = tf.train.Coordinator()
+  threads = tf.train.start_queue_runners(sess = sess, coord = coord)
+  
+  for i in range(101):
+    sess.run(optimizer)
+    if i % 10 == 0:
+      print("step: %d accuracy:%f" % (i, sess.run(accuracy)))
+      
+  coord.request_stop()
+  coord.join(threads)
+  print("done")
+  
 
 
 
