@@ -56,7 +56,6 @@
 # 阶段2: 尽量使用Pipeline方式读取数据，尤其分布式的情况
 # 阶段3：考虑用reader.read_up_to()代替tf.train.batch()
 # 阶段4：使用PAI-TF的Cache功能
-
 # 例子： reader.read_up_to(n)(Pipeline) VS reader.read() + tf.train.batch(n)(Feed)
 #  |                 |                                    |
 #  |             构造文件队列                          构造文件队列
