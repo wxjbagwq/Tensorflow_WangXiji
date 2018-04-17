@@ -23,6 +23,44 @@
 # 如何高效的写代码(老师的经验)(在理解tf的API后才会起作用):
 # 1. 如果允许, 数据和计算尽可能"离得近"
 #    - 距离: device之间数据传输所经过的路径
-#    - with ops.colocate_with(param)         // 让这个函数下面定义的所有操作都和param位于同一个device上
-     
+#    - with ops.colocate_with(param)                    // 让这个函数下面定义的所有操作都和param位于同一个device上
+# 2. 正确的使用tf.Variable()
+#    - 考虑用tf.get_variable()代替                       // 见笔记本后第12条！
+# 3. 合理程序需要的硬件资源，进而布局代码
+#    - 分布式只是不得已而为之的手段，不是越多分布式越好
+#    - 要估计显存大小，内存大小
+
+# 数据I/O的几种方式
+# 1. Feed方式
+#    - placeholder + feed.dict 
+#    - 简单，快速，例子多，但是性能有损失(特别是对于分布式的情况,数据拷贝开销太大)
+#    - 可以不依赖文件系统
+# 2. Preload方式
+#    - 办法1：constant(用这种常量的方式，将数据预先装载在Graph里面)
+#    - 办法2：将数据先run进内存，以后要用的时候直接去取
+#    - 仅适用于小量数据
+# 3. Pipeline方式                                        // Graph由Node组成
+#    - XXXReader, Op                                     // 由某类型的Reader读出后发给Op
+#    - Graph流水线执行，需要数据时自动拉取
+#    - 好处在于也是Graph方式的，即在run之前没有任何数据的流动，并且在run之后，也不用去一次次的feed数据，开销就要小一些
+
+# Queue机制       
+# 1. 生产者和消费者的中间介质           // 1的模型图见笔记本后第13条！
+# 2. tf里独立于sess.run()(主线程)执行,即虽然Queue也是依靠sess.run()启动，但是启动之后就在自己独立的线程里面执行了
+# 3. 异步I/O的实现！
+#    - reader.read(queue)
+#    - tf.train.batch()
+# Queue的另一使用场景：batch的实现也是依靠Queue:当Queue里的数据量达到batch_size时才返回，作为batch
+
+
+
+
+
+
+
+
+
+
+
+
 
