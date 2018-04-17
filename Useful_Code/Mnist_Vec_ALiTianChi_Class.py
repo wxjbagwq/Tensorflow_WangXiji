@@ -80,3 +80,5 @@ with tf.Session() as tf:
   coord.join(threads)
   # 71,72和79,80这几行代码在使用了tf_queue的时候就要用到，可以理解为一种固定格式
   print("done")
+
+  
