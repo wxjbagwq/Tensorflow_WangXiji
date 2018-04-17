@@ -52,7 +52,7 @@
 #    - tf.train.batch()   ----> 当Queue里的数据量达到batch_size时才返回，作为batch
 
 # 加速数据I/O --> 目标: I/O不再成为计算的瓶颈 --> 原因: GPU是最贵的计算资源，好的算法应该通过设计让CPU维持在较高水准
-# 阶段1：将小文件压缩成大文件，在深度学习中，将原始的零散的音频或者图片的数据压缩成为一个整的大文件
+# 阶段1：将小文件压缩成大文件，在深度学习中，将原始的零散的音频或者图片的数据压缩成为一个整的大文件 ----> 用TFRecord
 # 阶段2: 尽量使用Pipeline方式读取数据，尤其分布式的情况
 # 阶段3：考虑用reader.read_up_to()代替tf.train.batch()
 # 阶段4：使用PAI-TF的Cache功能
@@ -71,6 +71,33 @@
 #  |
 # Request timeline
 # 但是：batch的优势在于数据可以是任意的！可以来自于多个XXXReader！(这里的XXXReader可以是OSS, FILE等等)不过大多数场景下都是一个Reader可以满足！
+
+# TFRecord转换：
+# 1. TFRecord是tf官方提供的一种数据编码格式
+# 2. 在python中提供了类似map的编程接口
+# 3. 可用于小文件压缩 ----> 就是前面I/O提到的优化办法之一
+# 4. 每小时可处理10,000,000张图片
+# 代码：
+#  _, serialized_example = readed.read(file_queue)   # Python中'_'也可以作为一个变量，通常作为临时变量
+#  features = tf.parse_single_example(
+#    serialized_example,
+#    features={
+#      'image_raw':tf.FixedLenFeature([], tf.string),
+#      'label':tf.FixedLenFeature([], tf.int64),
+#    })
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
