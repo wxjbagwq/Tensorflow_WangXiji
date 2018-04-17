@@ -1,0 +1,73 @@
+import tensorflow as tf
+
+a = tf.constant(2.0, tf.float32)
+b = tf.constant(3.0, tf.float32)
+c = a + b
+
+with tf.Session() as sess:
+    print(sess.run(c))
+# 输出: 5.0
+
+g = tf.get_default_graph()
+print(g)
+# 输出: <tensorflow.python.framework.ops.Graph object at 0x000000756DFB75F8>
+
+print(g.as_graph_def())
+# 输出: 
+node {
+  name: "Const"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_FLOAT
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_FLOAT
+        tensor_shape {
+        }
+        float_val: 2.0
+      }
+    }
+  }
+}
+node {
+  name: "Const_1"
+  op: "Const"
+  attr {
+    key: "dtype"
+    value {
+      type: DT_FLOAT
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_FLOAT
+        tensor_shape {
+        }
+        float_val: 3.0
+      }
+    }
+  }
+}
+node {
+  name: "add"
+  op: "Add"
+  input: "Const"
+  input: "Const_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_FLOAT
+    }
+  }
+}
+versions {
+  producer: 24
+}
