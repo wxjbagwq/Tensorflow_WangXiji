@@ -70,6 +70,6 @@
 #  |                                                   则从队列返回结果    
 #  |
 # Request timeline
-# 但是：batch的优势在于数据可以是任意的！可以来自于多个XXXReader！(这里的多个XXXReader可以见)
+# 但是：batch的优势在于数据可以是任意的！可以来自于多个XXXReader！(这里的XXXReader可以是OSS, FILE等等)不过大多数场景下都是一个Reader可以满足！
 
 
