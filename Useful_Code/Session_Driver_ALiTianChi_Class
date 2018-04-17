@@ -49,18 +49,27 @@
 # 2. tf里独立于sess.run()(主线程)执行,即虽然Queue也是依靠sess.run()启动，但是启动之后就在自己独立的线程里面执行了
 # 3. 异步I/O的实现！
 #    - reader.read(queue)
-#    - tf.train.batch()
-# Queue的另一使用场景：batch的实现也是依靠Queue:当Queue里的数据量达到batch_size时才返回，作为batch
+#    - tf.train.batch()   ----> 当Queue里的数据量达到batch_size时才返回，作为batch
 
+# 加速数据I/O --> 目标: I/O不再成为计算的瓶颈 --> 原因: GPU是最贵的计算资源，好的算法应该通过设计让CPU维持在较高水准
+# 阶段1：将小文件压缩成大文件，在深度学习中，将原始的零散的音频或者图片的数据压缩成为一个整的大文件
+# 阶段2: 尽量使用Pipeline方式读取数据，尤其分布式的情况
+# 阶段3：考虑用reader.read_up_to()代替tf.train.batch()
+# 阶段4：使用PAI-TF的Cache功能
 
-
-
-
-
-
-
-
-
-
+# 例子： reader.read_up_to(n)(Pipeline) VS reader.read() + tf.train.batch(n)(Feed)
+#  |                 |                                    |
+#  |             构造文件队列                          构造文件队列
+#  |                 |                                    |
+#  |            构造reader对象                        构造reader对象
+#  |                 |                                    |
+#  |           从文件中读取n条数据                    从文件中读取1条数据
+#  |                 |                                    |
+#  |              返回数据                           将该数据加入数据队列  <--- 多线程enqueue 
+#  |                                                      |
+#  |                                               如果数据队列长度超过n, <--- 单线程dequeue
+#  |                                                   则从队列返回结果    
+#  |
+# Request timeline
 
 
