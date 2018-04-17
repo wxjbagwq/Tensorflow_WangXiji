@@ -1,0 +1,294 @@
+# 将图片中的字符分割为最小单位（如一个汉字/字母/数字/标点符号等）。
+# 需要识别的图片并不仅仅只有一行内容。首先需要寻找整个图片中内容的大轮廓；然后依次分行，找到每一行的轮廓；
+# 最后寻找每一行的每一个字符的轮廓。一般来说寻找轮廓要按照顺序进行，因为文本内容是有序的。
+# 因为我们要识别的是网页截图，内容的格式都比较规整，所以并不需要提前做图像的校正、去噪等。
+# 内容分块、分行最常用的方式是利用投影直方图，分割字符则可以利用投影直方图或分析连通域。但
+# 但是在做网页截图的识别时，用简单的背景前景对比即可在规整的图像中分割出行、字符。
+
+###
+# 需要在上面代码的基础上添加这两个方法
+# 这些代码仅为演示效果，实际使用中并不需要绘制分割线
+###
+ 
+# 将图像中的文字行分割出来
+def image_row_split( image ):
+     
+    # 假设背景色是255（即白色）
+    bg_color = 255
+    row_length = len( image )
+    column_length = len( image[ 0 ] )
+ 
+    is_last_blank_row = True
+    for row in range( 0, row_length ):
+        is_row_blank = True
+        for column in range( 0, column_length ):
+            if image[ row ][ column ] == bg_color:
+                pass
+            else:
+                is_row_blank = False
+                break
+ 
+        if is_last_blank_row == is_row_blank:
+            pass
+        else:
+            if is_row_blank == False:
+                image[ row - 1 ] = [ 0 for column in range( 0, column_length ) ]
+            else:
+                image[ row ] = [ 0 for column in range( 0, column_length ) ]
+ 
+            is_last_blank_row = is_row_blank
+ 
+    return image
+ 
+# 对行分割的代码进行改造，即可得出分割字符的代码
+def image_char_split( image, image_row_splited ):
+ 
+    image_save( "output/image_test.png", image )
+ 
+    bg_color = 255
+    row_length = len( image )
+    column_length = len( image[ 0 ] )
+ 
+    is_last_blank_column = True
+    for column in range( 0, column_length ):
+        is_column_blank = True
+        for row in range( 0, row_length ):
+            if image[ row ][ column ] == bg_color:
+                pass
+            else:
+                is_column_blank = False
+                break
+ 
+        if is_last_blank_column == is_column_blank:
+            pass
+        else:
+            if is_column_blank == False:
+                for row in range( 0, row_length ):
+                    image_row_splited[ row ][ column - 1 ] = 0
+            else:
+                for row in range( 0, row_length ):
+                    image_row_splited[ row ][ column ] = 0
+ 
+            is_last_blank_column = is_column_blank
+ 
+    return image_row_splited
+ 
+def main():
+ 
+    # 在上节的main代码上添加这几行
+ 
+    # 分行
+    image_row_splited = image_row_split( np.copy( image_binary ) )
+    image_save( "output/number_row_splited.png", image_row_splited )
+ 
+    # 分字符
+    image_char_splited = image_char_split( np.copy( image_binary ), np.copy( image_row_splited ) )
+    image_save( "output/number_char_splited.png", image_char_splited )
+    
+# 上面的处理只是找到每一行和每一列，并划上分割线。实际应用中我们需要把其中的每一个字符都切割出来，
+# 并进行大小统一化才能进行下一步的识别。步骤如下：
+# 1）先将图片按照行进行切割，然后对每一行进行字符切割。注意这些操作都需要保证分割出来的字符都是有序的；
+# 2）分割出来的字符很可能高度、宽度、大小不一致，我们需要将它们转换为同一大小。一般做法是统一转换为高、宽
+#    相等的正文形字符块，边长取高、宽值大者；
+# 3）大小变换之后，不同的算法会对内容进行不同的处理。opencv的默认做法会将我们切割出的二值化字符变为灰度字符。
+#    因此这里需要再次将切割出的、进行过大小统一的字符全都二值化。
+# 最后产生的结果是一堆有序的、大小和格式统一的字符图像。然后就可以交给下一步进行特征提取和识别了。
+# 程序是在上面几步的基础上修改的，完整代码如下：
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plot
+ 
+def image_read( filename, mode = None ):
+     
+    if mode != None:
+        return cv2.imread( filename, mode )
+    else:
+        return cv2.imread( filename )
+ 
+def image_save( filename, image ):
+     
+    return cv2.imwrite( filename, image )
+ 
+def image_binarization( image ):
+     
+    row_length = len( image )
+    column_length = len( image[ 0 ] )
+ 
+    bg_color = 0
+ 
+    for row in range( 0, row_length ):
+        bg_color_is_found = True
+        color = image[ row ][ 0 ]
+        for column in range( 0, column_length ):
+            if color == image[ row ][ column ]:
+                pass
+            else:
+                bg_color_is_found = False
+                break
+ 
+        if bg_color_is_found:
+            bg_color = color
+            break
+ 
+    for row in range( 0, row_length ):
+        for column in range( 0, column_length ):
+            if image[ row ][ column ] == bg_color:
+                if bg_color > 127:
+                    image[ row ][ column ] = 255
+                else:
+                    image[ row ][ column ] = 0
+ 
+            else:
+                if bg_color > 127:
+                    image[ row ][ column ] = 0
+                else:
+                    image[ row ][ column ] = 255
+ 
+ 
+    return image
+ 
+def image_row_split( image ):
+     
+    bg_color = 255
+    row_length = len( image )
+    column_length = len( image[ 0 ] )
+ 
+    image_in_rows = []
+ 
+    is_last_blank_row = True
+    last_row_index = 0
+    for row in range( 0, row_length ):
+        is_row_blank = True
+        for column in range( 0, column_length ):
+            if image[ row ][ column ] == bg_color:
+                pass
+            else:
+                is_row_blank = False
+                break
+ 
+        if is_last_blank_row == is_row_blank:
+            pass
+        else:
+            if is_row_blank == False:
+                image[ row - 1 ] = [ 0 for column in range( 0, column_length ) ]
+ 
+                # 本行开始位置的行号
+                last_row_index = row
+            else:
+                image[ row ] = [ 0 for column in range( 0, column_length ) ]
+ 
+                # 已经找到本行开始位置和结束位置的行号，然后复制一行
+                image_in_rows.append( image[ last_row_index : row ] )
+ 
+            is_last_blank_row = is_row_blank
+ 
+    # 第一个返回值是划了分行线的完整图像
+    # 第二个返回值是一个List，每个元素都是分割出来的一行
+    return image, image_in_rows
+ 
+def image_char_split( image, image_row_splited ):
+ 
+    image_save( "output/image_test.png", image )
+ 
+    bg_color = 255
+    row_length = len( image )
+    column_length = len( image[ 0 ] )
+ 
+    is_last_blank_column = True
+    last_left_line_index = 0
+    chars_splited = []
+    for column in range( 0, column_length ):
+        is_column_blank = True
+        for row in range( 0, row_length ):
+            if image[ row ][ column ] == bg_color:
+                pass
+            else:
+                is_column_blank = False
+                break
+ 
+        if is_last_blank_column == is_column_blank:
+            pass
+        else:
+            if is_column_blank == False:
+                for row in range( 0, row_length ):
+                    image_row_splited[ row ][ column - 1 ] = 0
+ 
+                # 找到本列字符的开始列号
+                last_left_line_index = column
+            else:
+                single_char = []
+                for row in range( 0, row_length ):
+                    image_row_splited[ row ][ column ] = 0
+ 
+                    # 有了开始和结束的列号，然后逐行复制，形成一个完整的字符
+                    single_char.append( image[ row ][ last_left_line_index : column ] )
+ 
+                # 将分割出的每一个字符加入List
+                # 注意需要将Python的List转换为numpy的多维数组（即png图像）
+                chars_splited.append( np.asarray( single_char ) )
+ 
+            is_last_blank_column = is_column_blank
+ 
+    return chars_splited
+ 
+def main():
+     
+    image = image_read( "input/number.png", mode = cv2.IMREAD_GRAYSCALE )
+    image_save( "output/number_gray.png", image )
+     
+    image_binary = image_binarization( np.copy( image ) )
+    image_save( "output/number_binary.png", image_binary )
+ 
+    # 得到分好行的图像及划了分割线的完整图像
+    image_row_lined, image_row_splited = image_row_split( np.copy( image_binary ) )
+ 
+    # 逐行进行分割
+    for r in range( 0, len( image_row_splited ) ):
+        image_save("output/number_in_row_"+str(r)+".png",image_row_splited[r])
+ 
+        # 得到每一行所分割出的字符
+        image_char_splited =
+            image_char_split(np.copy(image_row_splited[r]), np.copy(image_row_lined))
+         
+        # 对每一个字符进行处理
+        for c in range( 0, len( image_char_splited ) ):
+ 
+            # 行假设图像的高>宽，则设定最长的边是高
+            max_length = len( image_char_splited[ c ] )
+            # 计算高宽比
+            ratio = max_length / len( image_char_splited[ c ][ 0 ] )
+ 
+            if len( image_char_splited[ c ][ 0 ] ) > max_length:
+                # 如果高<宽
+                # 设定最长的边是宽
+                max_length = len( image_char_splited[ c ][ 0 ] )
+                # 计算宽高比
+                ratio = max_length / len( image_char_splited[ c ] )
+ 
+                # 将高<宽的图像放大10倍，并使其高=宽 
+                large_image = cv2.resize( image_char_splited[ c ], 
+                        ( max_length * 10, 
+                            int(len(image_char_splited) * ratio * 10))) 
+            else: 
+                # 如果高>宽
+                # 将高>宽的图像放大10倍，并使其高=宽
+                large_image = cv2.resize( image_char_splited[ c ], 
+                        ( max_length * 10, 
+                            int(len(image_char_splited[0])*ratio*10)))
+ 
+            # 放大之后的图像会再次变为灰度图（依图像放大的算法而定）
+            # 需要将放大之后的图像再次手动处理为二值图，然后保存
+            image_save( "output/number_" + str( r ) + "_" + str( c ) + ".png", 
+                image_binarization( large_image )) 
+ 
+if __name__ == "__main__":
+     
+    main()
+    
+# 需要注意的是上面的代码仅为演示整个OCR图像预处理的过程，这些代码的实际运行效率还有很充足的优化空间。
+
+
+
+
+
