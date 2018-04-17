@@ -1,0 +1,28 @@
+# Tensorflow编写代码是时候是通过符号式的方法去构造Graph的过程，实际上整个程序在sess.run()之前是都没有执行的！
+
+#                                    Serialized Graph(排列好Graph)                        
+# 单机中Tensorflow运行模型：   Client ------------------------------> Server                          
+#                                |    In-process(进程内部)              |                                
+#                           (用户写的代码)                     (Tensorflow Runtime)                            
+# 在Client把Graph序列化好以后，通过进程内部通信的方式，调用C++的Runtime                                           
+                                                                                                             
+# 分布式：
+# 1. 例子:  with tf.device('/cpu:0')
+#         Serialized Graph           Register sub-graph
+# Client ------------------> Server --------------------> Workers
+#              GRPC协议         |          GRPC协议
+#                      (负责拆解Graph并分配)                              
+
+# 源码里的定义：
+#  class Session():
+#     def __init__(      
+#          targer = ''            // Client通过GRPC协议发送Graph到的目的地址
+#          graph  = None          // 默认是None，即当前程序内部定义的全部的Graph     
+#          config = None) ...     // 指定一些运行配置
+
+# 如何高效的写代码(老师的经验)(在理解tf的API后才会起作用):
+# 1. 如果允许, 数据和计算尽可能"离得近"
+#    - 距离: device之间数据传输所经过的路径
+#    - with ops.colocate_with(param)         // 让这个函数下面定义的所有操作都和param位于同一个device上
+     
+
