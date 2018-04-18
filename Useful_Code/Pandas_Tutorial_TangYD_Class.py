@@ -62,4 +62,73 @@ print(food_info.shape)                         # 打印结果:(8618, 37)
 max_calories = food_info["Energ_Kcal"].max()  
 nomalized_calories = food_info["Energ_Kcal"] / max_calories                      # 归一化
 nomalized_protein  = food_info["Protein_(g)"] / food_info["Protein_(g)"].max()   # 归一化
+
+# 排序
+food_info.sort_values("Sodium_(mg)", inplace=True)                      # 对Sodium_(mg)列进行排序，inplace表示排序好的列是替换 
+                                                                        # 原列还是变成新列加入数据集。默认是从小到大的排列
+food_info.sort_values("Sodium_(mg)", inplace=True, ascending=False)     # ascending=False表示降序排列。NaN表示缺失值，放在最后                                                                
 ###
+
+###
+# 另一段示例代码，数据集为titanic_train.csv
+###
+import pandas as pd
+import numpy as np
+titanic_survival = pd.read_csv("titanic_train.csv")    # 读入数据   
+titanic_survival.head()                                # 打印数据集的前5行
+
+age = titanic_survival["Age"]                          # "Age"为列名
+age_is_null    = pd.isnull(age)                        # 拿出缺失值
+age_null_count = len(age_is_null)                      # 计算缺失值个数
+ 
+# 如果不对缺失值进行处理，那么在进行求取均值操作时候，结果就会是NaN,例子如下
+mean_age = sum(titanic_survival["Age"]) / len(titanic_survival["Age"])      # 得到结果为NaN
+# 增加了对缺失值的丢弃，代码如下
+good_ages = titanic_survival["Age"][age_is_null == False]                   # 注意这里是两个方括号！！！！
+correct_mean_age = sum(good_ages) / len(good_ages)
+# 或者直接调用.mean()函数,也可以丢掉缺失值
+correct_mean_age = titanic_survival["Age"].mean()     # 这个方法不太好，因为一般缺失值不会丢弃，可以用均值，中值，众值来填充
+
+# 求取某等级的船票(Pclass)的均值(一个数据统计的工作)
+passenger_classes = [1, 2, 3]
+fares_by_class = {}
+for this_class in passenger_classes:
+  pclass_rows    = titanic_survival[titanic_survival["Pclass"] == this_class]   # 遍历，找到做某个舱的全部的人
+  pclass_fares   = pclass_rows["Fare"]                                          # "Fare"表示船票价格的列
+  fare_for_class = pclass_fares.mean()                                          # 求船票价格的均值
+  fare_for_class[this_class] = fare_for_class                                   # 找到某等级的舱的船票各自的均值是多少
+print(fare_for_class)  
+# 上面的办法过于复杂，可以用.pivot_table()函数
+# 下面计算的是某等级的船票(Pclass)获救的平均人数
+passenger_survival = titanic_survival.pivot_table(index="Pclass", values="Survived", aggfunc=np.mean)
+# 下面计算的是某等级的船票(Pclass)的人的平均年龄
+passenger_age = titanic_survival.pivot_table(index="Pclass", values="Age")      # 不指定aggfunc时，默认也是平均
+# 下面计算的是某登船地点(Embarked)的人的船票价格(Fare)的总以及生还人数(Survived)的总和
+port_stats = titanic_survival.pivot_table(index="Embarked", values=["Fare","Survived"], aggfunc=np.sum)  # 这里的是np.sum！
+
+# .dropna()丢地缺失值
+drop_na_columns = titanic_survival.dropna(axis=1)                               # axis=1/0按列/行丢弃
+new_titanic_survival = titanic_survival.dropna(axis=0, subset=["Age","Sex"])    # 丢弃"Age"和"Sex"为缺失值的行！注意这里是行！
+
+# 定位到具体的值                             [行数， 列数]
+row_index_83_age      = titanic_survival.loc[83, "Age"]              # 找到第83个样本的"Age"值
+row_index_1000_pclass = titanic_survival.loc[76, "Pclass"]           # 找到第76个样本的"Pclass"值
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+###  
+
