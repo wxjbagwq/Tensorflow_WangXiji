@@ -62,16 +62,4 @@ print(food_info.shape)                         # 打印结果:(8618, 37)
 max_calories = food_info["Energ_Kcal"].max()  
 nomalized_calories = food_info["Energ_Kcal"] / max_calories                      # 归一化
 nomalized_protein  = food_info["Protein_(g)"] / food_info["Protein_(g)"].max()   # 归一化
-
-
-
-
-
-
-
-
-
-
-
 ###
-
