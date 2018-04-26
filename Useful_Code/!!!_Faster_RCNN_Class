@@ -4,33 +4,42 @@
 # Faster_RCNN可以做检测，但绝不仅仅做物体检测，人脸检测等等，一切的检测或者识别都可以基于这个框架来完成
 # 而且Faster_RCNN的代码和模型以及数据全部都在它的Git上面公开了的
 
-###
-# Abstract
-###
-# Region proposal algorithms(可以理解中文名字成为: 提取框的算法) 
+# 1. Region proposal algorithms(可以理解中文名字成为: 提取框的算法) 
 # (1) 图像中的多目标检测，并且分类的前提以及最困难的是找到一个框去框住目标，其实后面的分类却并不难。
 # (2) 难点在于：框的形状和大小都是不同的！
 # (3) 对于框的提取办法：把几百个框通过一个共享的卷积网络去做分类
-# (4) 这篇文章最厉害的地方在于构建的是一个End to End的模型，所有的其他内容都是在CNN之上的！                              
+# (4) 这篇文章最厉害的地方在于构建的是一个End to End的模型，所有的其他内容都是在CNN之上的！  
 
-###
-# Introduction
-###
+# 2. 论文中提到当时三种目标检测的算法 multiple scaled images(anchor boxes), multiple filter sizes, multiple references都不怎么样。
 
+# 3. 文章提出的办法是基于"anchor"(中文直译为:矛)。
+# (1) 图像先经过一个CNN(如VGG16)得到输出"特征图'(feature_map)。
+# (2) 根据"感受野"可以知道: 如果得到的feature_map尺寸为50*50，feature_map的每个1*1对应了原图的16*16像素大小的部分(因为VGG16有4个池化层)。
+#     得到结论: feature_map上的点可以对应原始图像中的某块区域 --> 框住了feature_map的点就框住了原始图像的某区域 --> 用若干框去框住feature_map的点
+# (3) 这种好处在于：(3.1) 输入只是一张原始图片！可以完成端到端的模型！
+#                  (3.2) 前面的整个CNN部分对于所有的框来说都是共享的！
 
-###
-# 图1的讲解
-###
-# 1. 论文中提到当时三种目标检测的算法 multiple scaled images(anchor boxes), multiple filter sizes, multiple references都不怎么样。
-# 
-
-
-
-
-
-
-
+# 4. Region Proposal Network
+# (1) 这个层就是负责"3.(2)"中的办法的实现:负责对于feature_map里面的点产生K个框(文章中K=9)
+# (2) RoI_Pooling负责把不同尺寸的框都搞成统一大小的(文章中是7*7)，这样才可以连接全连接层！
+# (3) 输入是一个任意大小的图像(长边不超过1000), 输出是框的四个顶点的坐标(回归)以及objectness_score(负责判断框内是否是物体)(二分类)
+# (4) 输入图像的大小只会影响anchor_boxes的数量
+# (5) feature_map上使用滑动窗口的办法去找到全部点的anchor_boxes
 
 
+# 5. 整个架构分成两个模块，一个conv负责产生proposal(feature_map里面的一个点对应的K个anchor_boxes),另一个conv负责分类
+# (1) 可以做成End_to_End结构
 
+# 6. 损失函数
 
+# 7. 总结
+# (1) 图像先输入到CNN中 --> 得到feature_map
+# (2) feature_map里面的每个点 --> 获取K个anchor_boxes
+# (3) anchor_boxes被喂入RoI_pooling --> 得到固定大小的proposal
+# (4) 固定大小的proposal投入到classifier --> 得到最终结果
+
+# 8. 代码分析
+# (1) 2*9=18(objectness_score*num_of_anchor_boxes); 4*9=36(四个顶点坐标*num_of_anchor_boxes)这里的36和18都是网络根据loss_func以及label
+      在不断的拟合学习过程中慢慢学会的，在实际的网络的代码里面，根本没有框的代码！也就是说给定要学习36个坐标数据，两个二分类数据，在拟合的过程中
+      网络才慢慢明白要找的内容是什么 ----> 这一段话应该是深度学习的精髓，对于网络的学习过程和人类的思考过程的区别要明白！人类设计的有实际意义
+      的结构(比如这里的框),在网络的面前只是一种学习的趋势，它不会在代码里面体现，只是在拟合的过程中慢慢达到人类的设计要求!
