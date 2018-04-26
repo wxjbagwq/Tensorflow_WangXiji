@@ -1,0 +1,36 @@
+###
+# Faster_RCNN: Towards Real-Time Object Detection with Region Proposal Networks
+###
+# Faster_RCNN可以做检测，但绝不仅仅做物体检测，人脸检测等等，一切的检测或者识别都可以基于这个框架来完成
+# 而且Faster_RCNN的代码和模型以及数据全部都在它的Git上面公开了的
+
+###
+# Abstract
+###
+# Region proposal algorithms(可以理解中文名字成为: 提取框的算法) 
+# (1) 图像中的多目标检测，并且分类的前提以及最困难的是找到一个框去框住目标，其实后面的分类却并不难。
+# (2) 难点在于：框的形状和大小都是不同的！
+# (3) 对于框的提取办法：把几百个框通过一个共享的卷积网络去做分类
+# (4) 这篇文章最厉害的地方在于构建的是一个End to End的模型，所有的其他内容都是在CNN之上的！                              
+
+###
+# Introduction
+###
+
+
+###
+# 图1的讲解
+###
+# 1. 论文中提到当时三种目标检测的算法 multiple scaled images(anchor boxes), multiple filter sizes, multiple references都不怎么样。
+# 
+
+
+
+
+
+
+
+
+
+
+
