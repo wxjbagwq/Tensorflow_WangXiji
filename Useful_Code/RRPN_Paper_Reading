@@ -1,5 +1,74 @@
 ###
-# Arbitrary-Oriented Scene Text Detection via Rotation Proposals ()
+# Arbitrary-Oriented Scene Text Detection via Rotation Proposals (基于旋转proposal的任意方向的场景下的Text_Detection)
 ###
+
+
+# 1. Abstract
+# (1)文章介绍了一种新颖的基于旋转的自然场景图像中任意方向文本检测框架。
+# (2)RRPN(Rotation_Region_Proposal_Networks)的目的是生成生成带有文本方向的角度信息的倾斜proposal。
+# (3)角度信息可以让Bounding_box的回归更好，以便获得更加准确的proposal
+# (4)RRoI(Rotation_Region-of-Interest)类似于RoI，只不过这里是为了给Arbitrary-Oriented的proposal做分类用的。
+
+# 2. Introduction
+# (1) OCR中会面临不均匀的光照，模糊，透视失真，方向等挑战，造成难度。
+# (2) 引用[6]-[16]都是一些OCR的论文，但是都是水平方向或近似水平方向的！
+# (3) 文章下面三个引用是当时有人做的关于任意方向的OCR
+#     [17] Multioriented text detection with fully convolutional networks                       (完全卷积网络的多方向文本检测)
+#     [18] Scene text detection via holistic, multi-channel prediction                          (通过全面的多通道预测来进行场景文本检测)
+#     [19] Accurate text localization in natural image with cascaded convolutional text network (利用级联卷积文本网络在自然图像中精确定位文本)
+#     但是他们都是用的预先分割的方式
+# (4) 本文开发了一个基于旋转的方法和一个面向任意文本检测的"端到端"文本检测系统。模型可以产生任意方向的proposal。
+# (5) 图1表明了RRPN是斜的proposal，不像水平办法中对倾斜文字的处理仅仅是一个更大的proposal！
+# (6) 角度信息用来对倾斜的proposal进行回归！
+# (7) RRoI用来把倾斜的proposal映射到feature_map上去！
+# (8) *** 文章的主要贡献在于在RPN的基础上面增加了RRoI和rotation_proposal的学习来处理倾斜文本 ***
+# (9) 文章用的数据集: MSRA-TD500, ICDAR2013, ICDAR2015 
+
+# 3. Related Work(这一段是原文的Google翻译！)
+# (1) 过去几十年来，对野外文本的阅读进行了研究;综合调查可以在[24] - [27]中找到。
+#     基于滑动窗口，连接组件和自下而上策略的方法被设计为处理基于水平的文本检测。
+#     基于滑动窗口的方法[7]，[10]，[28] - [30]倾向于使用固定大小的滑动窗口来滑动文本区域并找到最有可能包含文本的区域。
+#     为了考虑更精确的文本样式，[10]，[31]将多个比例和比率应用于滑动窗口方法。
+#     然而，滑动窗口过程导致大的计算成本和低效率。
+#     代表性基于连接成分的方法，例如Stroke Width Transform（SWT）[32]和
+#     Maximally Stable Extremal Regions（MSER）[33]，在ICDAR 2011 [34]和ICDAR 2013 [22] 。
+#     它们主要关注图像的边缘和像素点，方法是通过边缘检测或极端区域提取来检测字符，然后将子MSER组件组合成单词或文本行区域。
+#     这些方法的功能在涉及多个连接字符，分段笔划字符和非均匀照明的一些困难情况下受到限制[35]。
+# (2) 野外的场景文本通常在实际应用中与任何方向对齐，并且需要任意方向的方法。
+#     例如，[36]使用相互幅度对称和梯度矢量对称来识别文本像素候选，而不考虑方向，包括来自自然场景图像的曲线，
+#     并且[37]通过获取图像边缘和文本之间的相似度来设计Canny文本检测器检测文本边缘像素并执行文本定位。
+#     最近，基于卷积网络的方法被提出来执行文本检测，例如Text-CNN [38]，首先使用优化的MSER检测器来查找文本的近似区域，
+#     然后将区域特征发送到基于字符的水平文本CNN分类器进一步识别字符区域。
+#     另外，Yao等人开发的分割模型采用了定向因子。 [18]。
+#     他们的模型旨在通过明确的文本分割方式预测更准确的方向，并在ICDAR2013 [22]，ICDAR2015 [23]和MSRATD500 [21]基准测试中获得出色的结果。
+# (3) 类似于文本检测的技术是通用对象检测。
+#     如果proposal的数量大大减少，检测过程可以更快。
+#     有多种region_proposal的方法，如Edge Boxes [39]，Selective Search [40]和Region Proposal Networks（RPNs）[20]。
+#     例如，Jaderberg等人 [41]扩展了region_proposal方法并应用Edge Boxes方法[39]来执行文本检测。
+#     他们的文本识别系统在几个文本检测基准上取得了出色的结果。
+# *** Connectionist Text Proposal Network(CTPN)[42]也是一种基于检测的场景文本检测框架。 ***
+# *** 它使用来自LSTM中的CNN网络的图像特征来预测文本区域并生成强健的proposal。             ***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
