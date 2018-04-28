@@ -32,7 +32,7 @@
 # 5. 整个架构分成两个模块，一个conv负责产生proposal(feature_map里面的一个点对应的K个anchor_boxes),另一个conv负责分类
 # (1) 可以做成End_to_End结构
 
-# 6. 损失函数
+# 6. 损失函数 --> 具体见笔记本61
 # (1) 一共有4个Loss：RPN层的Classification_loss和Bounding_box_regression_loss
 #                   RoI_pooling层的lassification_loss和Bounding_box_regression_loss
 # (2) Bounding_box_regression_loss是二分类即判断是否是前景的损失函数！                  
