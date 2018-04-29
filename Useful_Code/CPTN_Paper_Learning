@@ -1,0 +1,62 @@
+###
+# Detecting Text in Natural Image with Connectionist Text Proposal Network (CTPN)
+###
+
+# 0.Abstract
+# (1) 用一种竖直anchor机制去预测text/non-text
+# (2) 结构:CNN -> Proposal -> RNN
+# (3) CTPN可以在多语言多尺寸的文本检测中工作，并且采用自底向上的方法
+
+# 1.Introduction
+# (1) 两个核心子任务:文本检测和文本识别
+# (2) 在文本精确定位中的挑战主要是:各式各样的文字形式以及非常杂乱的背景干扰
+# (3) CTPN是Faster_R_CNN针对于文本检测中的一种发展，因为文本检测需要更加的精细，把文本区域都包含进去
+# (4) 端到端的模型
+
+# 1.1 Contributions
+# (1) CTPN可以在卷积层中定位文本
+# (2) *** 文章在图1中提出了CTPN的架构, 具体见笔记本 ***
+# (3) CTPN把文本检测用一堆小的竖直的框来完成
+# (4) CTPN使用了BLSTM(双向LSTM)，在检测的过程中可以探索文本的上下文信息以提高检测水平
+
+# 2.Related Work
+# 2.1 Text Detction
+# (1) 常见的基于字体或笔画的文本检测中使用的方法包括:CCs以及Sliding-window(滑动窗口)办法
+# (2) CCs通过区分文本和非文本像素的低级特征如强度，颜色，梯度等来实现，很粗略
+# (3) 滑动窗口的办法非常复杂因为窗口很多，大量重复计算，而且准确率不咋样
+# 2.2 Object detection
+# (1) CNN通过对低级特征的提取和强大的分类器来实现了物体的检测
+# (2) Selective_Search(选择性搜索)是现在目标检测中应用广泛的办法，主要是R-CNN及其扩展
+# (3) 最关键的是文本检测有它的特殊性，很难直接用Faster-R-CNN这种模型直接用在文本检测中去
+
+# 3.Connectionist Text Proposal Network
+# (1) 三个办法实现: 使用fine_scale(精细检测的，通俗说就是很细很瘦高的)的proposal
+#                  Recurrent_connectionist文本proposal(也就是后面连接了一个双向LSTM)
+#                  side-refinement侧面改进
+# 3.1 Dectecting Text in Fine-scale Proposal
+# (1) CTPN使用的proposal若干个精细尺度(fine-scale)如16像素宽
+# (2) *** 在feature_map(VGG16的conv5)中使用3*3的滑动窗口 ***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
