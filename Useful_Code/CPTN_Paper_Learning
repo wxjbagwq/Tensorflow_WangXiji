@@ -36,7 +36,7 @@
 # 3.1 Dectecting Text in Fine-scale Proposal
 # (1) CTPN使用的proposal若干个精细尺度(fine-scale)如16像素宽
 # (2) *** 在feature_map(VGG16的conv5)中使用3*3的滑动窗口 ***
-
+# (3) *** total_stride = 16, 感受野 = 228 ***
 
 
 
