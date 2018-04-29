@@ -34,9 +34,25 @@
 #                  Recurrent_connectionist文本proposal(也就是后面连接了一个双向LSTM)
 #                  side-refinement侧面改进
 # 3.1 Dectecting Text in Fine-scale Proposal
-# (1) CTPN使用的proposal若干个精细尺度(fine-scale)如16像素宽
+# (1) CTPN使用的是16像素宽的精细文本proposal
 # (2) *** 在feature_map(VGG16的conv5)中使用3*3的滑动窗口 ***
 # (3) *** total_stride = 16, 感受野 = 228 ***
+# (4) RPN直接用于文本检测的话容易出现问题，不能有好的检测效果,因为单词或者文字各个都是独立的，容易混淆他们的位置
+# (5) 通过固定较难预测的水平位置来预测proposal的竖直位置
+# (6) CTPN使用竖直的anchor来预测每个fine_scale_proposal的text/non-text分数和y轴位置
+# (7) 精细文本proposal(fine-scale-text-proposal)设计
+# (7.1) detector密集扫描整个feature_map
+# (7.2) text_proposal在输入图像中具有16个像素的宽度，等效于feature_map里面的每个像素点的感受野宽度为16
+# (7.3) *** 然后设计K个竖直的具有相同水平位置(?)的16个像素宽度的垂直位置的高度可变的anchor来为每个proposal预测y坐标 ***
+# (7.4) 文章的实验中使用的是10个anchor，高度从11到273个像素点(每次除以0.7)
+# (7.5) *** 垂直坐标(vertical coordinates)是通过proposal_bounding_box的高度和y轴中心来测量的 ***
+# (7.6) 计算anchor的bounding_box的预测的相对垂直坐标(v)的公式见笔记本！
+# (7.7) 每个text_proposal在输入图像中都有大小为h*16的bounding_box
+# (7.8) 文章中说一般text_proposal的感受野尺寸都会大大小于228*228
+# (8) 检测处理(detction processing)设计
+# (8.1) CONV使用的是VGG16模型,所以得到的feature_map尺寸为: W*H*C(conv5)(C:通道数量,W*H:特征图的尺寸)
+# (8.2) detector使用3*3*C的窗口密集滑动过(应该理解成步长等于1)feature_map用来产生预测
+# (8.3) *** 对于每个预测，水平位置和K个anchor的位置是固定的，可以把feature_map里面的窗口位置映射到输入图像来预先计算 ***
 
 
 
