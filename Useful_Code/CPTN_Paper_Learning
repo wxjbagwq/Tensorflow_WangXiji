@@ -19,6 +19,7 @@
 # (3) CTPN把文本检测用一堆小的竖直的框来完成
 # (4) CTPN使用了BLSTM(双向LSTM)，在检测的过程中可以探索文本的上下文信息以提高检测水平
 
+
 # 2.Related Work
 # 2.1 Text Detction
 # (1) 常见的基于字体或笔画的文本检测中使用的方法包括:CCs以及Sliding-window(滑动窗口)办法
@@ -29,10 +30,12 @@
 # (2) Selective_Search(选择性搜索)是现在目标检测中应用广泛的办法，主要是R-CNN及其扩展
 # (3) 最关键的是文本检测有它的特殊性，很难直接用Faster-R-CNN这种模型直接用在文本检测中去
 
+
 # 3.Connectionist Text Proposal Network
 # (1) 三个办法实现: 使用fine_scale(精细检测的，通俗说就是很细很瘦高的)的proposal
 #                  Recurrent_connectionist文本proposal(也就是后面连接了一个双向LSTM)
 #                  side-refinement侧面改进
+
 # 3.1 Dectecting Text in Fine-scale Proposal
 # (1) CTPN使用的是16像素宽的精细文本proposal
 # (2) *** 在feature_map(VGG16的conv5)中使用3*3的滑动窗口 ***
@@ -55,10 +58,12 @@
 # (8.3) *** 对于每个预测，水平位置和K个anchor的位置是固定的，可以把feature_map里面的窗口位置映射到输入图像来预先计算 ***
 # (8.4) 在每个窗口输出K个anchor的text/non-text的scores和y坐标
 # (8.5) 非极大值抑制使用的是text/non-text的score>0.7
+
 # 3.2 Recurrent Connectionist Text Proposal
 # (1) 由于文本有很强烈的上下文顺序特征，所以单独的处理proposal是不行的，所以要对每一个proposal进行相关的处理 --> 这是使用双向LSTM的原因！
 # (2) *** CTPN在conv5上面增加了一个RNN，把每个窗口的卷积feature作为输入，并且在隐藏层Ht中循环更新其内部状态 *** --> 这部分的公式和解释见笔记本！！
 # (3) *** 剩下的整个RNN层的设计相关见笔记本！！！ ***
+
 # 3.3 Side-refinement
 # (1) 文本行构建：
 # (1.1) 给proposal Bi一个配对的邻居Bj定义为: Bj->Bi如果满足(1.2),(1.3),(1.4)的三个条件
@@ -70,6 +75,39 @@
 # (2) Side-refinement处理
 # (2.1) 在文本检测中，如果两个水平边的proposal没有检测出来会导致很严重的问题, Side-refinement就是为了精确处理这个问题的办法
 # (2.2) *** Side-refinement的具体处理办法见笔记本！！！ ***
+
+# 3.4 Model Outputs and Loss Function
+# (1) 如图1所示，在最后一个FC层连接了三个output，分别是: 2K个vertical_coordinates(竖直坐标); 2K个scores; K个side-refinement(边界精细偏移量)
+# (2) 使用多任务学习来联合优化模型参数
+# (3) *** 损失函数见笔记本！！！ ***
+
+# 3.5 Training and Implementation Details(训练和实施细节)
+# (1) 使用标准的反向传播和随机梯度下降(stochastic gradient descent,SGD)来进行End2End的训练
+# (2) CTPN与RPN类似，训练样本是anchor,其位置可以在img中预先计算，以便找到相应的GT的label
+# (3) 训练标签(training label)
+# (3.1) 在text/non-text的分类中，把二元标签分配给正(text)anchor和负(non-text)anchor
+# (3.2) 正anchor要满足下面的(3.3)和(3.4)
+# (3.3) 和GT要有大于0.7的IoU
+# (3.4) 和GT有最高的IoU
+# (3.5) 由(3.4)可以知道即使是一个非常小的文本图像也会分配一个正anchor
+# (3.6) 负anchor被定义成:和GT的IoU小于0.5
+# (4) 训练数据(training data)
+# (4.1) 在训练过程中，mini-batch里面的每个samples都是从一张图片里面收集的
+# (4.2) mini-batch中的anchor的数量: Ns=128,正负样本比例为1:1
+# (4.3) 如果正样本的数目少于64，则会用负样本填充到mini-batch中去
+# (4.4) *** 文章里面把图像的短边都搞成600的同时保持高宽比 ***
+# (5) 实施细节(Implementation detail)
+# (5.1) 文中的VGG16是在ImageNet数据上预先训练好的(这个是惯例)
+# (5.2) RNN层和Output_layer用的是(均值为0，标准差为0.01)的高斯分布随机权重初始化
+# (5.3) momentum=0.9
+# (5.4) 0.0005权重衰减
+# (5.5) 在第一次的16K次迭代中学习率等于0.001，随后再以0.0001的学习率进行4K次迭代
+
+
+
+
+
+
 
 
 
