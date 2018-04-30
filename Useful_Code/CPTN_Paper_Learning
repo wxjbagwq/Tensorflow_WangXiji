@@ -68,7 +68,8 @@
 # (1.5) 如果两个proposal有Bj->Bi,并且Bi->Bj的话，就把这两个proposal分成一对(a pair)
 # (1.6) 整个文本行就是由这一些连续的连接的pairs构成的
 # (2) Side-refinement处理
-# (2.1)
+# (2.1) 在文本检测中，如果两个水平边的proposal没有检测出来会导致很严重的问题, Side-refinement就是为了精确处理这个问题的办法
+# (2.2) *** Side-refinement的具体处理办法见笔记本！！！ ***
 
 
 
