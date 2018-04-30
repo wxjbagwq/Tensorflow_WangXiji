@@ -109,10 +109,15 @@
 # 4.1 Benchmarks and Evaluation Metric(基准和评估指标)
 # (1) 原文:The Multilingual scene text dataset is collected by [24].
 # (1) 翻译:  多语言场景文本数据集由[24]收集
+
 # 4.2 Fine-Scale Text Proposal Network with Faster R-CNN
 # (1) fine-scale_text_proposal针对文本识别提升了准确率
+
 # 4.3 Recurrent Connectionist Text Proposals
 # (1) RNN在模糊的文本中检测效果显著
+
+# 4.4 Comparisons with state-of-the-art results(与最先进的结果进行比较)
+
 
 
 
