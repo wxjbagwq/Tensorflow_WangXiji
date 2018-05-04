@@ -1,0 +1,19 @@
+###
+# 本文件是对来自eragonruan/text-detection-ctpn的第一次部署总结
+##
+
+# 1. 根据要求安装了tensorflow1.3, cython0.24, opencv-python, easydict
+
+# 2. GPU环境的lib准备
+# 2.1 lib/utils/make.sh代码:
+#     cython bbox.pyx                   // 相较于rgb大神的代码多了一段def bbox_intersections
+#     cython cython_nms.pyx             // 这个文件rgb的代码里面没有！
+#     cython gpu_nms.pyx                // 和rgb大神的代码一样！
+#     python setup.py build_ext --inplace
+#     mv utils/* ./ 
+#     rm -rf build
+#     rm -rf utils
+# 2.2 Python执行过程：先编译成字节码，再由解释器解释才能调用要C代码层，Cython就是省去了解释的过程，将Python直接转化成C语言代码
+# 2.3 nms_kernel.cu代码和rgb的一样！
+
+
