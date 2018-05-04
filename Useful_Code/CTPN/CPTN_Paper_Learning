@@ -52,6 +52,7 @@
 # (7.6) 计算anchor的bounding_box的预测的相对垂直坐标(v)的公式见笔记本！
 # (7.7) 每个text_proposal在输入图像中都有大小为h*16的bounding_box
 # (7.8) 文章中说一般text_proposal的感受野尺寸都会大大小于228*228
+# (7.9) anchor的竖直坐标由其高度以及中心点的y坐标确定
 # (8) 检测处理(detction processing)设计
 # (8.1) CONV使用的是VGG16模型,所以得到的feature_map尺寸为: W*H*C(conv5)(C:通道数量,W*H:特征图的尺寸)
 # (8.2) detector使用3*3*C的窗口密集滑动过(应该理解成步长等于1)feature_map用来产生预测
