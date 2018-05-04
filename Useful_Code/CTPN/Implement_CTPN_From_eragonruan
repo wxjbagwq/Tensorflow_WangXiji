@@ -6,9 +6,9 @@
 
 # 2. GPU环境的lib准备
 # 2.1 lib/utils/make.sh代码:
-#     cython bbox.pyx                   // 相较于rgb大神的代码多了一段def bbox_intersections
-#     cython cython_nms.pyx             // 这个文件rgb的代码里面没有！
-#     cython gpu_nms.pyx                // 和rgb大神的代码一样！
+#     cython bbox.pyx                   // 解释见Learning_bbox.pyx
+#     cython cython_nms.pyx             // 这个文件rgb的代码里面没有！解释见cython_nms.pyx
+#     cython gpu_nms.pyx                // 和rgb大神的代码一样！解释见gpu_nms.pyx
 #     python setup.py build_ext --inplace
 #     mv utils/* ./ 
 #     rm -rf build
