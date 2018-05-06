@@ -16,4 +16,16 @@
 # 2.2 Python执行过程：先编译成字节码，再由解释器解释才能调用要C代码层，Cython就是省去了解释的过程，将Python直接转化成C语言代码
 # 2.3 nms_kernel.cu代码和rgb的一样！
 
-# 3.数据集里面有不可以导入的
+# 3. 问题1:给的数据集里面有若干图片是不能用cv2.imread导入的！所以需要去除掉
+# (1) cv2.imread如果不能导入的话，返回值就是NoneType类型！所以用下面的代码判断哪些返回值是NoneType的然后去掉之！
+# (2) code: if cv2.imread(file_path) is None:
+#              os.remove(file_path)
+#              continue                  // 跳出本次循环
+#           else:
+#              pass
+
+# 4. prepare_training_data/split_label.py # 看这个的时候要对照代码上的注释！
+# (1) 把图片等比例缩放，保证短边长度为600
+# (2) cv2.imread(file_path).shape --> (500,600,3)这个是图像的大小！
+# (3) code: img_size = img.shape # 获取图片大小如(500,600,3)
+#           im_size_min = np.min(img_size[0:2]) # 注意这里img_size[0:2]是不包括索引值为2的!
