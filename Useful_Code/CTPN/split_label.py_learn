@@ -1,0 +1,174 @@
+# -*- coding: utf-8 -*-  
+import os
+import numpy as np
+import math
+import cv2 as cv
+
+#path = '/media/D/code/OCR/text-detection-ctpn/data/mlt_english+chinese/image'
+path = '/home/group602/deeplearning/wangxiji/ALiTianChi/text-detection-ctpn-master/data/image_9000'
+#gt_path = '/media/D/code/OCR/text-detection-ctpn/data/mlt_english+chinese/label'
+gt_path = '/home/group602/deeplearning/wangxiji/ALiTianChi/text-detection-ctpn-master/data/txt_9000'
+out_path = 're_image'
+if not os.path.exists(out_path):
+    os.makedirs(out_path)
+files = os.listdir(path)
+files.sort()
+#files=files[:100]
+for file in files:
+    _, basename = os.path.split(file)
+    if basename.lower().split('.')[-1] not in ['jpg', 'png']:
+        continue
+    stem, ext = os.path.splitext(basename)
+    #gt_file = os.path.join(gt_path, 'gt_' + stem + '.txt')
+    gt_file = os.path.join(gt_path, stem + '.txt')
+    img_path = os.path.join(path, file)
+    print(img_path)
+
+    # 对不能导入的img进行去除的工作!
+    img = cv.imread(img_path)
+    # 这里对返回值为NoneType做出了判断
+    if img is None:
+        os.remove(img_path)
+        os.remove(gt_file)
+        continue
+    else:
+        pass
+    img_size = img.shape # 获取图片大小如(500,600,3) width;height;channel
+    #print(img_size)
+    im_size_min = np.min(img_size[0:2]) # 注意这里img_size[0:2]是不包括索引值为2的!
+    im_size_max = np.max(img_size[0:2])
+
+    im_scale = float(600) / float(im_size_min)
+    if np.round(im_scale * im_size_max) > 1200:
+        im_scale = float(1200) / float(im_size_max)
+
+    # 下面重塑img的尺寸并且用cv.imwrite保存
+    re_im = cv.resize(img, None, None, fx=im_scale, fy=im_scale, interpolation=cv.INTER_LINEAR)
+    re_size = re_im.shape
+    cv.imwrite(os.path.join(out_path, stem) + '.jpg', re_im)
+
+    with open(gt_file, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        # 下面这一句首先去掉了前后空格(strip),然后全部变成小写,接着按分隔符分隔出来
+        # str.strip():移除字符串头尾指定的字符，默认为空格
+        # str.lower():返回将字符串中所有大写字符转换为小写后生成的字符串
+        # str.split(str="", num=string.count(str)):通过指定分隔符对字符串进行切片
+        # 如果参数 num 有指定值，则仅分隔 num 个子字符串;str=""这个参数指定的是分隔符 
+        splitted_line = line.strip().lower().split(',')
+
+        # 这里的x: height; y: width
+        # 根据原图的像素坐标点发现原图里面的label的坐标是8元组，4个点的X,Y坐标，逆时针顺序
+        pt_x = np.zeros((4, 1))
+        pt_y = np.zeros((4, 1))
+
+
+        # 下面这些都是拉伸后的坐标
+        # 左上角
+        pt_x[0, 0] = int(float(splitted_line[0]) / img_size[1] * re_size[1])
+        pt_y[0, 0] = int(float(splitted_line[1]) / img_size[0] * re_size[0])
+
+        # 左下角
+        pt_x[1, 0] = int(float(splitted_line[2]) / img_size[1] * re_size[1])
+        pt_y[1, 0] = int(float(splitted_line[3]) / img_size[0] * re_size[0])
+
+        # 右下角
+        pt_x[2, 0] = int(float(splitted_line[4]) / img_size[1] * re_size[1])
+        pt_y[2, 0] = int(float(splitted_line[5]) / img_size[0] * re_size[0])
+
+        # 右上角
+        pt_x[3, 0] = int(float(splitted_line[6]) / img_size[1] * re_size[1])
+        pt_y[3, 0] = int(float(splitted_line[7]) / img_size[0] * re_size[0])
+
+        # np.argsort返回的是数组值从小到大的索引值
+        ind_x = np.argsort(pt_x, axis=0) # 按照行
+        # pt_x里面存放的是四个顶点的x坐标值
+        # 这个时候取出来的就是x最小的坐标点的x,y坐标
+        pt_x = pt_x[ind_x]
+        pt_y = pt_y[ind_x]
+
+        if pt_y[0] < pt_y[1]:
+            pt1 = (pt_x[0], pt_y[0])
+            pt3 = (pt_x[1], pt_y[1])
+        else:
+            pt1 = (pt_x[1], pt_y[1])
+            pt3 = (pt_x[0], pt_y[0])
+
+        if pt_y[2] < pt_y[3]:
+            pt2 = (pt_x[2], pt_y[2])
+            pt4 = (pt_x[3], pt_y[3])
+        else:
+            pt2 = (pt_x[3], pt_y[3])
+            pt4 = (pt_x[2], pt_y[2])
+
+        xmin = int(min(pt1[0], pt2[0]))
+        ymin = int(min(pt1[1], pt2[1]))
+        xmax = int(max(pt2[0], pt4[0]))
+        ymax = int(max(pt3[1], pt4[1]))
+
+        if xmin < 0:
+            xmin = 0
+        if xmax > re_size[1] - 1:
+            xmax = re_size[1] - 1
+        if ymin < 0:
+            ymin = 0
+        if ymax > re_size[0] - 1:
+            ymax = re_size[0] - 1
+
+        # 目标区域的长宽
+        width = xmax - xmin
+        height = ymax - ymin
+
+        # reimplement
+        step = 16.0
+
+        # 这里的x_left和x_right是fine-scale-text-proposal的水平位置相同的两个点的x坐标
+        x_left = []
+        x_right = []
+        
+        # list.append():向list尾添加新的对象
+        x_left.append(xmin)
+
+        # math.ceil(x):返回一个大于或等于 x 的的最小整数
+        # x_left_start这样处理的话可以找到整数数目的fine-scale-text-proposal
+        x_left_start = int(math.ceil(xmin / 16.0) * 16.0)
+
+        # 这个地方+16的意义应该在于方便于后面的Side-refinement
+        if x_left_start == xmin:
+            x_left_start = xmin + 16
+
+        # 这一段就是把有多少个fine-scale-text-proposal放入np.array格式的x_left中
+        for i in np.arange(x_left_start, xmax, 16):
+            x_left.append(i)
+        x_left = np.array(x_left)
+
+        # 有了前面的x_left，只要对应加上16和最后的xmax在转化一个格式就可以了
+        x_right.append(x_left_start - 1)
+        for i in range(1, len(x_left) - 1):
+            x_right.append(x_left[i] + 15)
+        x_right.append(xmax)
+        x_right = np.array(x_right)
+
+        # 1. np.where(cond,x,y): 满足cond返回x,否则返回y
+        # 2. np.where(arry): 返回arry中为'真'的坐标, '真'也可以理解成为非零
+        idx = np.where(x_left == x_right)
+
+        # np,delete()删除列或者行这里的axis=0表示行
+        x_left = np.delete(x_left, idx, axis=0)
+        x_right = np.delete(x_right, idx, axis=0)
+
+        if not os.path.exists('label_tmp'):
+            os.makedirs('label_tmp')
+
+        # 从这里的输出可以看出来最终输出的是fine-scale-text-proposal的四元组
+        with open(os.path.join('label_tmp', stem) + '.txt', 'a') as f:
+            for i in range(len(x_left)):
+                f.writelines("text\t")
+                f.writelines(str(int(x_left[i])))
+                f.writelines("\t")
+                f.writelines(str(int(ymin)))
+                f.writelines("\t")
+                f.writelines(str(int(x_right[i])))
+                f.writelines("\t")
+                f.writelines(str(int(ymax)))
+                f.writelines("\n")
