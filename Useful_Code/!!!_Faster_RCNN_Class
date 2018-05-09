@@ -22,8 +22,12 @@
 # 4. Region Proposal Network
 # (1) 这个层就是负责"3.(2)"中的办法的实现:负责对于feature_map里面的点产生K个框(文章中K=9)
 # (2) RoI_Pooling负责把不同尺寸的框都搞成统一大小的(文章中是7*7)，这样才可以连接全连接层！
-#   ---> 根据RRPN的论文，这个RoI_Pooling的作用应该不止这么一点，要去原文里面看！
-
+###
+# (2.1) 输入图像经过VGG16得到固定尺寸的feature_map, 上面的每一个点都产生了9个anchor,这些anchors的尺寸各不相同！
+#       由于每个anchor都要再经过conv之后连接到FC上去(这后面的conv+FC就是负责产生分类或回归任务的网络)！
+#       如果不同的尺寸的anchors进入conv后得到的结果尺寸必然不同，也就无法连接fc层！
+#       *** 所以RoI_Pooling的作用就是把在feature_map上得到的anchors池化成为统一尺寸！！！ ***
+###
 # (3) 输入是一个任意大小的图像(长边不超过1000), 输出是框的四个顶点的坐标(回归)以及objectness_score(负责判断框内是否是物体)(二分类)
 # (4) 输入图像的大小只会影响anchor_boxes的数量
 # (5) feature_map上使用滑动窗口的办法去找到全部点的anchor_boxes
