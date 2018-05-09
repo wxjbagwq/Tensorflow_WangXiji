@@ -44,8 +44,9 @@
 # 7. 总结
 # (1) 图像先输入到CNN中 --> 得到feature_map
 # (2) feature_map里面的每个点 --> 获取K个anchor_boxes
-# (3) anchor_boxes被喂入RoI_pooling --> 得到固定大小的proposal
-# (4) 固定大小的proposal投入到classifier --> 得到最终结果
+# (3) anchor_boxes经过RPN的cls和bbox回归得到proposal(这里的cls只针对anchors里面的目标是否为前景进行分类！)
+# (4) 不同尺寸的proposal被喂入RoI_pooling --> 得到固定大小的proposal
+# (5) 固定大小的proposal投入到classifier --> 得到最终结果(这里的cls对proposal里面的前景的具体类型进行分类！)
 
 # 8. 代码分析
 # (1) 2*9=18(objectness_score*num_of_anchor_boxes); 4*9=36(四个顶点坐标*num_of_anchor_boxes)这里的36和18都是网络根据loss_func以及label
