@@ -56,83 +56,83 @@
 ###
 # 独立阅读Faster_RCNN论文总结！
 ###
-1. 先进的物体检测网络都依赖region proposal algorithms比如Fast_RCNN
-2. 但是框住物体的框的计算寻找却是瓶颈
-3. Faster_RCNN提出了region_proposal_network去找框，基本可以把找框的计算降到可以忽略
-4. 整个模型是End2End结构
-5. Faster_RCNN使用的最后的检测模型是Fast_RCNN的
-6. 通过使用非常深的VGG16提取特征，可以让模型的速度达到每秒5帧
-7. 以前的目标检测模型产生proposal的办法是Selective_Search
-   (1) Selective_Search: 计算相似度，包括颜色，纹理，尺寸,交并比
-8. 图1的介绍： image金字塔; filter金字塔； 以及RPN的anchor
-9. proposal: 一个提议框，对其做回归和分类
-10. Deep Networks for Object Detection: 像RCNN这样利用CNN去做端到端的目标检测被证明是很有效的
-11. 图2的介绍：Faster_RCNN的整体架构由两部分构成
-（1）RPN
-（2）Fast_RCNN的detector
-12. A Region Proposal Network (RPN) takes an image
-(of any size) as input and outputs a set of rectangular
-object proposals, each with an objectness score.
-13. 论文的VGG16用的FCN，具体操作是取消了原VGG16的conv3后面的FC层，增加了conv4,conv5以得到feature_map
-14. 共享卷积（共享了提取feature_map的VGG16）
-15. 论文的feature_map如果用ZF（5层conv）是256*256；如果用VGG16（13层）
-16. VGG16的Multi_scale训练：由于VGG16的输入是224*224，如果输入的图像尺寸不满足，
-    就把图像的短边缩放到大于224的某个值，然后提取224*224来训练
-17. 把特征图喂入RPN的时候，感受野对于ZF是171*171，对于VGG16是228*228
-18. 由于在feature_map上面用3*3的filter以滑动的方式提取anchors，所以实际上是共享卷积的
-19. 根据论文3.1的最后一段的描述以及对应的图3，可以知道提取做reg和cls的anchors是用3*3的filter然后
-    选中中间的点(所以论文里面说一个3*3的卷积核和两个1*1的卷积核(这两个分别对应reg和cls))
-20. (论文标题3.1.1 Anchors)如果有K个可能的proposal（论文中可能的proposal就是anchor），
-    对于reg就有4K个输入来表示这K个box(因为采用的是4元组),并且cls的话就有2K个scores来表示前景或者背景
-    并且在实验中，对于每一个3*3的滑动卷积核的中心点，K=9，因为是3种长宽比和3个基础长度一共9种组合
-    （长宽比有1:1，1:2,2:1）
-21. （论文标题Translation-Invariant Anchors->平移不变的anchor）
-     anchor的平移不变性可以减少RPN的输出规模，比如mutilbox就要输出800*(4+1),
-     而本文用的anchor的话输出只有（4+2）*512'
-22. (Multi-Scale Anchors as Regression References)
-    产生proposal的办法按照图1有以前的两种老的:image金字塔(有效但是费时)和filter金字塔(一般是两者结合使用)
-    而文章用的是多宽高比，多基础尺寸的anchor办法，特点是：
-    多尺寸的输入，单一尺寸的feature_map和filter，并且共享卷积！！！
-23. (3.1.2 RPN的Loss Function)
-    (1) RPN的score:前景和背景(正向和负向)两个标签
-    (2) 正向标签:最高IoU或者0.7的IoU(与GT的)
-    (3) 通常选择高于0.7的IoU是可以作为正向标签的，但是少数情况下是找不到高于0.7的！所以还是选择最高IoU
-    (4) 如果IoU低于0.3分配负标签
-    (5) 公式1为RPN的Loss_Function -> 要解释Lreg用的损失函数:SmoothL1(比较重要)
-    (6) 公式1的解释:Pi,Pi*,Ti,Ti*,Lcls,Lreg,(Pi*)*Lreg(乘Pi*是为了让正样本有Lreg并且负样本没有Lreg)
-    (7) 平衡Lcls和Lreg的权重(纳姆达)
-    (8) bounding_box的四元组:X,Y,W,H
-    (9) 公式2: X(proposal), Xa(anchor), X*(gt);Y,W,H类似！
-24. (3.1.3 Training RPNs)
-    (1) 一个mini-batch有256个anchors
-    (2) mini-batch里面的正负样本比例为1:1
-    (3) 前60K个mini-batch学习速率为0.001
-    (4) 后20K个mini-batch学习速率为0.0001
-    (5) momentum = 0.9 ----------------------------> momentum:动量梯度下降，第二门课2.6，计算梯度的指数加权平均来更新权重，一般就设置为0.9
-    (6) 权重衰减0.0005
-25. (3.2 Sharing Features for RPN and Fast R-CNN)
-    由于论文模型使用了RPN提取proposal以及Fast_RCNN做分类检测，所以要两个部分都要训练，采取了以下三种办法
-                                         * Fast_RCNN的分类检测模块从代码上面看来也就是RoI->FC->Relu->dropouy->cls:Softmax以及bbox:smoothL1*        
-    (1) Alternating training: 分开训练RPN以及Fast_RCNN的目标检测部分
-    (2) Approximate joint training：统一RPN和Fast_RCNN一起作训练
-    (3) Non-approximate joint training：RPN的预测结果送入RoI_Pooling层进行统一尺寸，然后再送入Fast_RCNN 
-                                                         * RoI_Pooling的设计可以见Fater_RCNN的代码 *
-26. (3.3 Implementation Details)论文的实现细节   
-    (1) 使用单一尺度的图像训练和测试region_proposal以及object_detection
-    (2) 缩放图像的短边到600像素值
-    (3) 不管使用的是ZF或者VGG16,由于感受野的原因,在feature_map上密集的滑动(一个像素一个像素的移动)filter,最后对应在输入图像上面的步幅是16pixel
-    (4) 宽高比三种有1:1,1:2,2:1以及三种基础尺寸128,256,512
-    (5) 训练期间丢弃了全部的跨界anchor
-    (6) 典型的1000*600的输入图像产生了约20000(60*40*9)个anchor，忽略跨界anchor的时候大约每张图像有6000个anchor
-    (7) 测试中把跨界proposal剪切到图像边界
-    (8) 在RPN的cls中对proposal采用了NMS
-    (9) IoU阈值为0.7，每个图像的proposal大约有2000个
-    (10)NMS不会降低最终的准确性，但是会大大减少proposal的数目！
-27. (Sensitivities to Hyper-parameters)
-    (1) 多anchor(9个)相较于单anchor有3%-4%的mAP下降
-    (2) (纳姆达)影响不敏感
-28. 结论
-    We have presented RPNs for efficient and accurate region proposal generation. 
-		By sharing convolutional features with the down-stream detection network, the region proposal step is nearly cost-free. 
-		Our method enables a unified, deep-learning-based object detection system to run at near real-time frame rates. 
-		The learned RPN also improves region proposal quality and thus the overall object detection accuracy.    
+#1. 先进的物体检测网络都依赖region proposal algorithms比如Fast_RCNN
+#2. 但是框住物体的框的计算寻找却是瓶颈
+#3. Faster_RCNN提出了region_proposal_network去找框，基本可以把找框的计算降到可以忽略
+#4. 整个模型是End2End结构
+#5. Faster_RCNN使用的最后的检测模型是Fast_RCNN的
+#6. 通过使用非常深的VGG16提取特征，可以让模型的速度达到每秒5帧
+#7. 以前的目标检测模型产生proposal的办法是Selective_Search
+#   (1) Selective_Search: 计算相似度，包括颜色，纹理，尺寸,交并比
+#8. 图1的介绍： image金字塔; filter金字塔； 以及RPN的anchor
+#9. proposal: 一个提议框，对其做回归和分类
+#10. Deep Networks for Object Detection: 像RCNN这样利用CNN去做端到端的目标检测被证明是很有效的
+#11. 图2的介绍：Faster_RCNN的整体架构由两部分构成
+#（1）RPN
+#（2）Fast_RCNN的detector
+#12. A Region Proposal Network (RPN) takes an image
+#(of any size) as input and outputs a set of rectangular
+#object proposals, each with an objectness score.
+#13. 论文的VGG16用的FCN，具体操作是取消了原VGG16的conv3后面的FC层，增加了conv4,conv5以得到feature_map
+#14. 共享卷积（共享了提取feature_map的VGG16）
+#15. 论文的feature_map如果用ZF（5层conv）是256*256；如果用VGG16（13层）
+#16. VGG16的Multi_scale训练：由于VGG16的输入是224*224，如果输入的图像尺寸不满足，
+#    就把图像的短边缩放到大于224的某个值，然后提取224*224来训练
+#17. 把特征图喂入RPN的时候，感受野对于ZF是171*171，对于VGG16是228*228
+#18. 由于在feature_map上面用3*3的filter以滑动的方式提取anchors，所以实际上是共享卷积的
+#19. 根据论文3.1的最后一段的描述以及对应的图3，可以知道提取做reg和cls的anchors是用3*3的filter然后
+#    选中中间的点(所以论文里面说一个3*3的卷积核和两个1*1的卷积核(这两个分别对应reg和cls))
+#20. (论文标题3.1.1 Anchors)如果有K个可能的proposal（论文中可能的proposal就是anchor），
+#    对于reg就有4K个输入来表示这K个box(因为采用的是4元组),并且cls的话就有2K个scores来表示前景或者背景
+#    并且在实验中，对于每一个3*3的滑动卷积核的中心点，K=9，因为是3种长宽比和3个基础长度一共9种组合
+#    （长宽比有1:1，1:2,2:1）
+#21. （论文标题Translation-Invariant Anchors->平移不变的anchor）
+#     anchor的平移不变性可以减少RPN的输出规模，比如mutilbox就要输出800*(4+1),
+#     而本文用的anchor的话输出只有（4+2）*512'
+#22. (Multi-Scale Anchors as Regression References)
+#    产生proposal的办法按照图1有以前的两种老的:image金字塔(有效但是费时)和filter金字塔(一般是两者结合使用)
+#    而文章用的是多宽高比，多基础尺寸的anchor办法，特点是：
+#    多尺寸的输入，单一尺寸的feature_map和filter，并且共享卷积！！！
+#23. (3.1.2 RPN的Loss Function)
+#    (1) RPN的score:前景和背景(正向和负向)两个标签
+#    (2) 正向标签:最高IoU或者0.7的IoU(与GT的)
+#    (3) 通常选择高于0.7的IoU是可以作为正向标签的，但是少数情况下是找不到高于0.7的！所以还是选择最高IoU
+#    (4) 如果IoU低于0.3分配负标签
+#    (5) 公式1为RPN的Loss_Function -> 要解释Lreg用的损失函数:SmoothL1(比较重要)
+#    (6) 公式1的解释:Pi,Pi*,Ti,Ti*,Lcls,Lreg,(Pi*)*Lreg(乘Pi*是为了让正样本有Lreg并且负样本没有Lreg)
+#    (7) 平衡Lcls和Lreg的权重(纳姆达)
+#    (8) bounding_box的四元组:X,Y,W,H
+#    (9) 公式2: X(proposal), Xa(anchor), X*(gt);Y,W,H类似！
+#24. (3.1.3 Training RPNs)
+#    (1) 一个mini-batch有256个anchors
+#    (2) mini-batch里面的正负样本比例为1:1
+#    (3) 前60K个mini-batch学习速率为0.001
+#    (4) 后20K个mini-batch学习速率为0.0001
+#    (5) momentum = 0.9 ----------------------------> momentum:动量梯度下降，第二门课2.6，计算梯度的指数加权平均来更新权重，一般就设置为0.9
+#    (6) 权重衰减0.0005
+#25. (3.2 Sharing Features for RPN and Fast R-CNN)
+#    由于论文模型使用了RPN提取proposal以及Fast_RCNN做分类检测，所以要两个部分都要训练，采取了以下三种办法
+#                                         * Fast_RCNN的分类检测模块从代码上面看来也就是RoI->FC->Relu->dropouy->cls:Softmax以及bbox:smoothL1*        
+#    (1) Alternating training: 分开训练RPN以及Fast_RCNN的目标检测部分
+#    (2) Approximate joint training：统一RPN和Fast_RCNN一起作训练
+#    (3) Non-approximate joint training：RPN的预测结果送入RoI_Pooling层进行统一尺寸，然后再送入Fast_RCNN 
+#                                                         * RoI_Pooling的设计可以见Fater_RCNN的代码 *
+#26. (3.3 Implementation Details)论文的实现细节   
+#    (1) 使用单一尺度的图像训练和测试region_proposal以及object_detection
+#    (2) 缩放图像的短边到600像素值
+#    (3) 不管使用的是ZF或者VGG16,由于感受野的原因,在feature_map上密集的滑动(一个像素一个像素的移动)filter,最后对应在输入图像上面的步幅是16pixel
+#    (4) 宽高比三种有1:1,1:2,2:1以及三种基础尺寸128,256,512
+#    (5) 训练期间丢弃了全部的跨界anchor
+#    (6) 典型的1000*600的输入图像产生了约20000(60*40*9)个anchor，忽略跨界anchor的时候大约每张图像有6000个anchor
+#    (7) 测试中把跨界proposal剪切到图像边界
+#    (8) 在RPN的cls中对proposal采用了NMS
+#    (9) IoU阈值为0.7，每个图像的proposal大约有2000个
+#    (10)NMS不会降低最终的准确性，但是会大大减少proposal的数目！
+#27. (Sensitivities to Hyper-parameters)
+#    (1) 多anchor(9个)相较于单anchor有3%-4%的mAP下降
+#    (2) (纳姆达)影响不敏感
+#28. 结论
+#    We have presented RPNs for efficient and accurate region proposal generation. 
+#		By sharing convolutional features with the down-stream detection network, the region proposal step is nearly cost-free. 
+#		Our method enables a unified, deep-learning-based object detection system to run at near real-time frame rates. 
+#		The learned RPN also improves region proposal quality and thus the overall object detection accuracy.     
