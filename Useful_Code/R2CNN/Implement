@@ -8,6 +8,10 @@
 # 1.3 我修改了split_label_r2cnn.py，让ToVoc_r2cnn.py直接从txt_9000里面读出八元组 
 # 1.3.1  txt_9000的八元组的顺序是： 右下 -> 右上 -> 左上 -> 左下
          R2CNN代码中例子的的顺序是：右下 -> 左下 -> 左上 -> 右上
-
+# 1.3.2 续行符: \ 后面不能跟空格
+# 1.3.3 增加NAME_LABEL_MAP对'text'的支持
+# 1.3.4 python3环境下　tensorflow环境中经常遇到'*' has type str, but expected one of: bytes问题的解决
+# 1.3.5 python: str.split()[]
+# 1.3.6 阿里给的数据集有的文件是'.jpg',有的是'.jpg.jpg'!
 # 2. 
 
