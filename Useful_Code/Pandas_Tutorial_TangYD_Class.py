@@ -121,6 +121,7 @@ titanic_reindexed = new_titanic_survival.reset_index(drop=True)                 
 print('-----------------')
 print(titanic_reindexed.loc[0:10])
   
+  
 # Pandas自定义函数.apply()
 def hundredth_row(column):
   hundredth_item = column.loc[99]
