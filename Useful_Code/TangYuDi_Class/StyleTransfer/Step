@@ -1,0 +1,26 @@
+1. train.py:
+(1) 导入一堆库
+(2) 设置一堆宏
+(3) 写好入口：if __name__ == '__main__'
+(4) 编写解析命令行参数函数：build_parser：用的argparse.add_argument。
+(5) 编写检查参数存在与否函数：check_opts：用的utils.exists，assert断言
+(6) 编写main:调用(4)(5)
+(7) 调用get_img(options.style)
+
+2. utils.py:
+(1) 编写get_img：用了scipy.misc.imread
+
+3. train.py
+(1) 把传入的参数一些存入字典，一些存入list
+(2) 调用主循环：optimize.optimize
+
+4. optimize.py
+(1) 导入一堆库，主要注意里面的VGG库！在代码处的注释有详细解释！
+(2) 编写optimize函数
+(2.1) 处理batch_size与content除不尽有余数要把余数丢弃的操作！
+(2.2) 建立空list去存放style_features
+(2.3) 把batch_shape和style_shape都设置成tf的标准格式！(batch_size,H,W,C)
+(2.4) 用With指定tf的计算图Graph，计算设备，Session
+(2.4.1) 把style_image用placeholder设置数据
+(2.4.2) 调用vgg.preprocess处理style_image
+
