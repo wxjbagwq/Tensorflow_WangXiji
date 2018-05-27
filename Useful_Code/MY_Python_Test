@@ -1,0 +1,30 @@
+### python用法笔记
+1. enumerate：python内置的枚举函数，对于每一个可迭代/遍历的对象，此函数将其构成一个index序列；返回值是一个enumerate对象；对大文件效果很差
+2. reshape()：
+(1) data.reshape(-1,1)：不知道是几行，反正是1列
+(2) data.reshape(1,-1)：不知道是几列，反正是1行
+(3) data.reshape(2,3) : 2行3列
+(4) data.reshape(-1)  : 把全部元素排成1排
+3. argparse.add_argument：指定解析参数
+4. assert断言：判断后跟的真假，assert True才会继续执行
+5. 几个符号：
+(1) '()'：元组，和list一样，只不过元素不可修改
+(2) '[]'：list
+(3) '{}'：dict
+6. python函数传递list参数：*list；dict参数：**dict
+7. tf.placeholder(tf.float32, shape, name='name')：
+(1) tf的一种标准数据格式，一个像预留数据槽的结构
+(2) 参数里面的name是指定存放时的name
+(3) 返回值是一个tensor类，使用时候要配合feed_dict={name:某些数据如[***]等}，这里的name就是前面返回的tensor类
+8. list索引操作：
+(1) [:-3]：从第1个到倒数第3个
+(2) [:n]：从第1个到第n个
+9. 一些数据格式：
+(1) tf的batch_shape：(batch_size，H，W，C)
+(2) tf的权重及参数shape：H,W,in_channel，out_channel
+(3) vgg*.mat的权重及参数：W,H,in_channel，out_channel
+
+
+
+
+
