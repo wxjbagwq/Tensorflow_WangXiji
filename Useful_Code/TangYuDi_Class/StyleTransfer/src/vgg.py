@@ -45,22 +45,10 @@ def net(model_path, image):
       bias = bias.reshape(-1)                 # 见第3笔记本后137          #     而对于tf的格式：H,W,in_channel，out_channel
       current = _conv_layer(current, kernels, bias)                      # 让输入的img经过卷积
       
-      
-
+     
 
 # VGG预处理模块，因为使用的别人训练好的VGG模型都进行了减均值的预处理操作，这里以相同方法也要实现。
 def preprocess(image):                   
   return image - MEAN_PIXEL
-
-
-
-
-
-
-
-
-
-
-
 
 
