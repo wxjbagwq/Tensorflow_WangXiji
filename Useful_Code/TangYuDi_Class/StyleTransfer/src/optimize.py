@@ -26,7 +26,7 @@ def optimize(content_targets, style_target, content_weight, style_weight,
   if mod > 0:                                   # 所以后面的3个就要被丢弃，这段代码就完成这样的功能！
     content_targets = content_targets[:-mod]    # *** 这里的[:-mod]表示取content从第1个开始到倒数第mod个样本！ ***
 ###  
-  style_features = []
+  style_features = {}
   batch_shape = (batch_size, 256, 256, 3)       # batch_size * H * W * C；这是tensorflow的标准数据格式
   style_shape = (1,) + style_target.shape       # 前面的1表示style的batch_size = 1
   
@@ -37,14 +37,14 @@ def optimize(content_targets, style_target, content_weight, style_weight,
     stylp_pre = np.array(style_target)
     for layer in STYLE_LAYERS:
       features = net[layer].eval(feed_dict = {style_image：stylp_pre})   # 取出对应层的feature_map
-      features = np.reshape(features, (-1, features.shape[3]))
-      gram = np.matmul(features.T, features)
-      style_features[layer] = gram
+      features = np.reshape(features, (-1, features.shape[3]))           ###
+      gram = np.matmul(features.T, features)                             # 这里的3行代码是根据论文的设计实现而已
+      style_features[layer] = gram                                       ###
       
    with tf.Graph.as_default(),tf.Session as sess:                         # 分别是指定：tf的计算图，运行设备，Session   
      x_content = tf.placeholder(tf.float32, shape=batch_shape,name='x_content')
      x_pre = vgg.preprocess(x_content)
-     content_features = []
+     content_features = {}
      content_net = vgg.net(vgg_path, x_pre)
      content_features[CONTENT_LAYER] = content_net[CONTENT_LAYER]
      
