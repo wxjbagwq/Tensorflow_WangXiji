@@ -23,7 +23,10 @@
 (1) tf的batch_shape：(batch_size，H，W，C)
 (2) tf的权重及参数shape：H,W,in_channel，out_channel
 (3) vgg*.mat的权重及参数：W,H,in_channel，out_channel
-
+10. scipy库
+(1) scipy.io.loadmat(*.mat)：返回.mat文件的数据
+(2) scipy.misc.imread(src_img, mode = '***')：读取img文件
+11. eval()函数就是实现list、dict、tuple到str之间的转化。
 
 
 
